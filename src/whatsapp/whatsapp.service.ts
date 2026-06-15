@@ -46,7 +46,10 @@ export class WhatsAppService implements OnModuleInit, OnModuleDestroy {
   }
 
   private initClients() {
-    const geminiKey = this.configService.get<string>('GEMINI_API_KEY') || this.configService.get<string>('NEXT_PUBLIC_GEMINI_API_KEY');
+    const geminiKey = this.configService.get<string>('GEMINI_API_KEY') || 
+                      this.configService.get<string>('NEXT_PUBLIC_GEMINI_API_KEY') || 
+                      this.configService.get<string>('GOOGLE_GEMINI_API_KEY');
+                      
     if (geminiKey) {
       this.genAI = new GoogleGenerativeAI(geminiKey);
       this.geminiModel = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
