@@ -55,7 +55,7 @@ export class WhatsAppService implements OnModuleInit, OnModuleDestroy {
                       
     if (geminiKey) {
       this.genAI = new GoogleGenerativeAI(geminiKey);
-      this.geminiModel = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      this.geminiModel = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
       console.log('✅ Gemini AI initialized for WhatsApp Bot');
     } else {
       console.log('❌ Gemini API Key not found in environment variables!');
