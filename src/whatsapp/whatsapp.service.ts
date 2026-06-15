@@ -30,7 +30,11 @@ export class WhatsAppService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    await this.startWhatsApp();
+    try {
+      await this.startWhatsApp();
+    } catch (e: any) {
+      console.error('Error starting WhatsApp bot (likely read-only filesystem):', e.message);
+    }
   }
 
   onModuleDestroy() {
@@ -58,22 +62,26 @@ export class WhatsAppService implements OnModuleInit, OnModuleDestroy {
   }
 
   private ensureDirectories() {
-    if (!fs.existsSync(this.KNOWLEDGE_DIR)) fs.mkdirSync(this.KNOWLEDGE_DIR, { recursive: true });
-    if (!fs.existsSync(this.SESSION_DIR)) fs.mkdirSync(this.SESSION_DIR, { recursive: true });
+    try {
+      if (!fs.existsSync(this.KNOWLEDGE_DIR)) fs.mkdirSync(this.KNOWLEDGE_DIR, { recursive: true });
+      if (!fs.existsSync(this.SESSION_DIR)) fs.mkdirSync(this.SESSION_DIR, { recursive: true });
 
-    if (!fs.existsSync(this.KNOWLEDGE_FILE)) {
-      fs.writeFileSync(this.KNOWLEDGE_FILE, `Alma Verde Diseño es una agencia de diseño y productora de eventos.
+      if (!fs.existsSync(this.KNOWLEDGE_FILE)) {
+        fs.writeFileSync(this.KNOWLEDGE_FILE, `Alma Verde Diseño es una agencia de diseño y productora de eventos.
 Servicios: Stands para ferias, eventos corporativos, branding, decoración, muebles (Alma Home).
 Teléfono: +57 XXX XXX XXXX
 Email: centrodigitaldediseno@gmail.com`);
-    }
+      }
 
-    if (!fs.existsSync(this.BEHAVIOR_FILE)) {
-      fs.writeFileSync(this.BEHAVIOR_FILE, `Eres el asistente virtual de Alma Verde Diseño por WhatsApp. 
+      if (!fs.existsSync(this.BEHAVIOR_FILE)) {
+        fs.writeFileSync(this.BEHAVIOR_FILE, `Eres el asistente virtual de Alma Verde Diseño por WhatsApp. 
 Responde de forma amigable, profesional y concisa en español.
 Usa emojis moderadamente.
 Si el cliente pregunta por precios, invítalo a cotizar en almaverdediseno.com/cotizar o a enviar detalles de su proyecto.
 Si detectas intención de compra o cotización, recopila: nombre, tipo de proyecto, presupuesto aproximado.`);
+      }
+    } catch (e: any) {
+      console.error('Error creating whatsapp directories. If you are on Vercel, the file system is read-only:', e.message);
     }
   }
 
@@ -129,18 +137,26 @@ Si detectas intención de compra o cotización, recopila: nombre, tipo de proyec
   restart() {
     console.log('🔄 Restarting WhatsApp connection to clear session...');
     setTimeout(() => {
-      if (this.sock) {
-        try { this.sock.logout(); } catch (e) {}
-      }
-      if (fs.existsSync(this.SESSION_DIR)) {
-        fs.rmSync(this.SESSION_DIR, { recursive: true, force: true });
-        console.log('🗑️ Session directory deleted.');
+      try {
+        if (this.sock) {
+          try { this.sock.logout(); } catch (e) {}
+        }
+        if (fs.existsSync(this.SESSION_DIR)) {
+          fs.rmSync(this.SESSION_DIR, { recursive: true, force: true });
+          console.log('🗑️ Session directory deleted.');
+        }
+      } catch (e: any) {
+        console.error('Error clearing session (read-only filesystem?):', e.message);
       }
       this.connectionStatus = 'disconnected';
       this.qrImage = null;
       setTimeout(() => {
-        this.startWhatsApp();
-        console.log('🔄 Session cleared, generating new QR code...');
+        try {
+          this.startWhatsApp();
+          console.log('🔄 Session cleared, generating new QR code...');
+        } catch (e: any) {
+          console.error('Error restarting WhatsApp bot:', e.message);
+        }
       }, 1000);
     }, 2000);
   }
