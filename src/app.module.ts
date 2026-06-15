@@ -11,6 +11,7 @@ import { CheckoutController } from './checkout/checkout.controller';
 import { UploadController } from './upload/upload.controller';
 import { ProjectsController } from './projects/projects.controller';
 import { QuotationController } from './quotation/quotation.controller';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { QuotationController } from './quotation/quotation.controller';
     GeminiModule,
     OpenAIModule,
     BoldModule,
+    WhatsAppModule,
   ],
   controllers: [
     PortfolioController,
