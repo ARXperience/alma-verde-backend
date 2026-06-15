@@ -46,7 +46,10 @@ export class WhatsAppService implements OnModuleInit, OnModuleDestroy {
   }
 
   private initClients() {
-    const geminiKey = this.configService.get<string>('GEMINI_API_KEY') || 
+    const geminiKey = process.env.GOOGLE_GEMINI_API_KEY || 
+                      process.env.GEMINI_API_KEY || 
+                      process.env.NEXT_PUBLIC_GEMINI_API_KEY || 
+                      this.configService.get<string>('GEMINI_API_KEY') || 
                       this.configService.get<string>('NEXT_PUBLIC_GEMINI_API_KEY') || 
                       this.configService.get<string>('GOOGLE_GEMINI_API_KEY');
                       
@@ -54,10 +57,12 @@ export class WhatsAppService implements OnModuleInit, OnModuleDestroy {
       this.genAI = new GoogleGenerativeAI(geminiKey);
       this.geminiModel = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
       console.log('✅ Gemini AI initialized for WhatsApp Bot');
+    } else {
+      console.log('❌ Gemini API Key not found in environment variables!');
     }
 
-    const supabaseUrl = this.configService.get<string>('NEXT_PUBLIC_SUPABASE_URL') || this.configService.get<string>('SUPABASE_URL');
-    const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') || this.configService.get<string>('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || this.configService.get<string>('NEXT_PUBLIC_SUPABASE_URL');
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY');
     
     if (supabaseUrl && supabaseKey) {
       this.supabase = createClient(supabaseUrl, supabaseKey);
@@ -117,6 +122,7 @@ Si detectas intención de compra o cotización, recopila: nombre, tipo de proyec
       status: this.connectionStatus,
       qr: this.qrImage,
       autoReply: this.autoReplyEnabled,
+      hasGemini: !!this.geminiModel,
     };
   }
 
@@ -165,7 +171,7 @@ Si detectas intención de compra o cotización, recopila: nombre, tipo de proyec
   }
 
   private async getAIResponse(phone: string, userMessage: string): Promise<string> {
-    if (!this.geminiModel) return 'Hola, gracias por escribirnos. Un asesor se comunicará contigo pronto. 🌿';
+    if (!this.geminiModel) return 'Hola, gracias por escribirnos. (No detecto la llave de Gemini configurada). Un asesor te contactará pronto. 🌿';
 
     const history = this.conversationCache.get(phone) || [];
     history.push({ role: 'user', content: userMessage });
@@ -190,7 +196,7 @@ Si detectas intención de compra o cotización, recopila: nombre, tipo de proyec
       return response;
     } catch (error) {
       console.error('Gemini error:', error);
-      return 'Disculpa, estoy teniendo dificultades. Un asesor se comunicará contigo pronto. 🌿';
+      return 'Disculpa, estoy teniendo dificultades técnicas para procesar tu mensaje. Un asesor se comunicará contigo pronto. 🌿';
     }
   }
 
